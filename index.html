@@ -17,7 +17,6 @@
   --muted:#777;
   --green:#00a86b;
   --blue:#1f6fff;
-  --orange:#ea7a00;
 }
 
 *{
@@ -146,9 +145,6 @@ button{
   padding:12px 16px;
   border-bottom:1px solid var(--border);
   background:var(--surface2);
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
 }
 
 .card-title{
@@ -204,48 +200,12 @@ button{
   background:var(--surface2);
 }
 
-.log{
-  max-height:260px;
-  overflow:auto;
-  border:1px solid var(--border);
-  border-radius:6px;
-}
-
-.log-entry{
-  padding:8px 10px;
-  border-bottom:1px solid var(--border);
-  font-size:0.68rem;
-}
-
-.badge{
-  display:inline-block;
-  padding:2px 6px;
-  border-radius:4px;
-  font-size:0.55rem;
-  font-weight:700;
-  margin-right:6px;
-}
-
-.badge-green{
-  background:#e7f8f0;
-  color:var(--green);
-}
-
-.badge-blue{
-  background:#ebf2ff;
-  color:var(--blue);
-}
-
 .range-box{
   border:1px solid var(--border);
   border-radius:6px;
   padding:12px;
   background:#fafaf8;
-}
-
-.range-title{
-  font-weight:700;
-  margin-bottom:8px;
+  margin-top:10px;
 }
 
 .highlight{
@@ -270,16 +230,9 @@ button{
   border:1px solid #d7d7cf;
 }
 
-.convergence-box{
-  margin-top:16px;
-  border:1px solid var(--border);
-  border-radius:6px;
-  overflow:hidden;
-}
-
 .conv-row{
   display:grid;
-  grid-template-columns:1fr 120px 120px;
+  grid-template-columns:1fr 120px 140px;
   padding:8px 10px;
   border-bottom:1px solid var(--border);
   font-size:0.72rem;
@@ -293,6 +246,13 @@ button{
 .hide{
   display:none;
 }
+
+.small-note{
+  font-size:10px;
+  font-weight:400;
+  color:#777;
+  margin-top:3px;
+}
 </style>
 </head>
 
@@ -300,7 +260,7 @@ button{
 
 <header>
   <h1>Weighted vs Random Ordering</h1>
-  <p>Pure ordering simulation with visibility into positional probability and sampling behavior.</p>
+  <p>Pure ordering simulation with visibility into positional probability and weighted sampling behavior.</p>
 </header>
 
 <div class="layout">
@@ -353,6 +313,7 @@ button{
     </div>
 
     <div class="card" id="probabilityCard">
+
       <div class="card-head">
         <div class="card-title">Probability Visibility</div>
       </div>
@@ -370,35 +331,32 @@ button{
           <tbody id="probabilityTable"></tbody>
         </table>
 
-        <div class="convergence-box">
-          <div class="conv-row header">
-            <div>Item</div>
-            <div>Expected %</div>
-            <div>Observed %</div>
-          </div>
+        <br>
 
-          <div id="convergenceBody"></div>
+        <div class="conv-row header">
+          <div>Item</div>
+          <div>Expected %</div>
+          <div>
+            Observed %
+            <div class="small-note">
+              (click Run 10,000 Simulations)
+            </div>
+          </div>
         </div>
+
+        <div id="convergenceBody"></div>
 
       </div>
     </div>
 
     <div class="card" id="samplingCard">
+
       <div class="card-head">
         <div class="card-title">Range Based Sampling</div>
       </div>
 
       <div class="card-body" id="rangeBody"></div>
-    </div>
 
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">Sampling Log</div>
-      </div>
-
-      <div class="card-body">
-        <div class="log" id="logBody"></div>
-      </div>
     </div>
 
   </div>
@@ -433,7 +391,11 @@ function renderWeightInputs(){
 
     row.innerHTML = `
       <input type="text" value="${item}" disabled>
-      <input type="number" min="1" value="1" class="weight-input" data-item="${item}">
+      <input type="number"
+             min="1"
+             value="1"
+             class="weight-input"
+             data-item="${item}">
     `;
 
     wrap.appendChild(row);
@@ -446,7 +408,8 @@ function getWeights(){
 
   document.querySelectorAll('.weight-input')
     .forEach(inp=>{
-      map[inp.dataset.item] = Number(inp.value) || 1;
+      map[inp.dataset.item] =
+        Number(inp.value) || 1;
     });
 
   return map;
@@ -454,19 +417,23 @@ function getWeights(){
 
 function renderProbabilityTable(weights){
 
-  const body = document.getElementById('probabilityTable');
+  const body =
+    document.getElementById('probabilityTable');
 
   body.innerHTML = '';
 
-  const total = Object.values(weights)
-    .reduce((a,b)=>a+b,0);
+  const total =
+    Object.values(weights)
+      .reduce((a,b)=>a+b,0);
 
   Object.entries(weights)
     .forEach(([item,weight])=>{
 
-      const prob = ((weight/total)*100).toFixed(2);
+      const prob =
+        ((weight/total)*100).toFixed(2);
 
-      const tr = document.createElement('tr');
+      const tr =
+        document.createElement('tr');
 
       tr.innerHTML = `
         <td>${item}</td>
@@ -480,12 +447,14 @@ function renderProbabilityTable(weights){
 
 function renderConvergence(weights){
 
-  const body = document.getElementById('convergenceBody');
+  const body =
+    document.getElementById('convergenceBody');
 
   body.innerHTML = '';
 
-  const total = Object.values(weights)
-    .reduce((a,b)=>a+b,0);
+  const totalWeights =
+    Object.values(weights)
+      .reduce((a,b)=>a+b,0);
 
   const totalRuns =
     Object.values(convergenceStats)
@@ -495,14 +464,15 @@ function renderConvergence(weights){
     .forEach(([item,weight])=>{
 
       const expected =
-        ((weight/total)*100).toFixed(2);
+        ((weight/totalWeights)*100).toFixed(2);
 
       const observed =
         totalRuns
           ? (((convergenceStats[item] || 0)/totalRuns)*100).toFixed(2)
           : '0.00';
 
-      const row = document.createElement('div');
+      const row =
+        document.createElement('div');
 
       row.className = 'conv-row';
 
@@ -522,9 +492,11 @@ function pureRandomShuffle(items){
 
   for(let i=arr.length-1;i>0;i--){
 
-    const j = Math.floor(Math.random()*(i+1));
+    const j =
+      Math.floor(Math.random()*(i+1));
 
-    [arr[i],arr[j]] = [arr[j],arr[i]];
+    [arr[i],arr[j]] =
+      [arr[j],arr[i]];
   }
 
   return arr;
@@ -532,76 +504,87 @@ function pureRandomShuffle(items){
 
 function weightedOrdering(items, weights){
 
+  /* ============================================
+     P1 -> weighted
+     P2+ -> original weight ranking
+  ============================================ */
+
   const working = items.map(item=>({
     item,
     weight:weights[item]
   }));
 
-  const ordering = [];
+  const total =
+    working.reduce((a,b)=>a+b.weight,0);
 
-  const logs = [];
+  const randomNumber =
+    Math.random() * total;
 
-  while(working.length){
+  let cumulative = 0;
 
-    const total = working
-      .reduce((a,b)=>a+b.weight,0);
+  let pickedIndex = -1;
 
-    const randomNumber = Math.random() * total;
+  const ranges = [];
 
-    let cumulative = 0;
+  for(let i=0;i<working.length;i++){
 
-    let pickedIndex = -1;
+    const start = cumulative;
 
-    const ranges = [];
+    cumulative += working[i].weight;
 
-    for(let i=0;i<working.length;i++){
+    const end = cumulative;
 
-      const start = cumulative;
-
-      cumulative += working[i].weight;
-
-      const end = cumulative;
-
-      ranges.push({
-        item:working[i].item,
-        start,
-        end
-      });
-
-      if(randomNumber >= start && randomNumber < end){
-        pickedIndex = i;
-      }
-    }
-
-    const chosen = working[pickedIndex];
-
-    ordering.push(chosen.item);
-
-    logs.push({
-      randomNumber:randomNumber.toFixed(2),
-      total:total.toFixed(2),
-      picked:chosen.item,
-      ranges
+    ranges.push({
+      item:working[i].item,
+      start,
+      end
     });
 
-    working.splice(pickedIndex,1);
+    if(
+      randomNumber >= start &&
+      randomNumber < end
+    ){
+      pickedIndex = i;
+    }
   }
+
+  const chosen = working[pickedIndex];
+
+  const ordering = [chosen.item];
+
+  const remaining =
+    items.filter(x => x !== chosen.item);
+
+  remaining.sort(
+    (a,b)=>weights[b]-weights[a]
+  );
+
+  ordering.push(...remaining);
 
   return {
     ordering,
-    logs
+    logs:[
+      {
+        randomNumber:randomNumber.toFixed(2),
+        total:total.toFixed(2),
+        picked:chosen.item,
+        ranges
+      }
+    ]
   };
 }
 
 function renderOrdering(ordering){
 
-  const row = document.getElementById('orderingRow');
+  const row =
+    document.getElementById('orderingRow');
 
   row.innerHTML = '';
 
   ordering.forEach((item,idx)=>{
 
-    const chip = document.createElement('div');
+    const chip =
+      document.createElement('div');
 
     chip.className = 'chip';
 
@@ -616,24 +599,26 @@ function renderOrdering(ordering){
 
 function renderSampling(logs){
 
-  const body = document.getElementById('rangeBody');
-  const logBody = document.getElementById('logBody');
+  const body =
+    document.getElementById('rangeBody');
 
   body.innerHTML = '';
-  logBody.innerHTML = '';
 
   const step = logs[0];
 
-  const box = document.createElement('div');
+  const box =
+    document.createElement('div');
 
   box.className = 'range-box';
 
   let html = `
-    <div class="range-title">
-      Position 1 Selection
-    </div>
+    <strong>Position 1 Selection</strong>
 
-    <div style="margin-bottom:8px;font-size:0.72rem;">
+    <div style="
+      margin-top:10px;
+      margin-bottom:12px;
+      font-size:0.72rem;
+    ">
       Random Number Generated:
       <strong>${step.randomNumber}</strong>
       / ${step.total}
@@ -642,15 +627,17 @@ function renderSampling(logs){
 
   step.ranges.forEach(r=>{
 
-    const active = (
+    const active =
       Number(step.randomNumber) >= r.start &&
-      Number(step.randomNumber) < r.end
-    );
+      Number(step.randomNumber) < r.end;
 
     html += `
-      <div class="range-box ${active ? 'highlight' : ''}" style="margin-top:8px;">
+      <div class="range-box ${active ? 'highlight' : ''}">
         <strong>${r.item}</strong><br>
-        Range: ${r.start.toFixed(2)} → ${r.end.toFixed(2)}
+        Range:
+        ${r.start.toFixed(2)}
+        →
+        ${r.end.toFixed(2)}
       </div>
     `;
   });
@@ -658,21 +645,6 @@ function renderSampling(logs){
   box.innerHTML = html;
 
   body.appendChild(box);
-
-  logs.forEach((step,idx)=>{
-
-    const log = document.createElement('div');
-
-    log.className = 'log-entry';
-
-    log.innerHTML = `
-      <span class="badge badge-green">STEP ${idx+1}</span>
-      Random ${step.randomNumber} selected
-      <strong>${step.picked}</strong>
-    `;
-
-    logBody.appendChild(log);
-  });
 }
 
 function hideWeightedUI(){
@@ -697,59 +669,53 @@ function showWeightedUI(){
     .classList.remove('hide');
 }
 
-function renderRandomModeInfo(items){
-
-  const logBody = document.getElementById('logBody');
-
-  logBody.innerHTML = `
-    <div class="log-entry">
-      <span class="badge badge-blue">RANDOM</span>
-      Uniform shuffle applied. Every permutation equally likely.
-    </div>
-  `;
-}
-
 function runSimulation(){
 
-  const mode = document.getElementById('mode').value;
+  const mode =
+    document.getElementById('mode').value;
 
   const items = parseItems();
 
   const weights = getWeights();
 
-  const banner = document.getElementById('modeBanner');
+  const banner =
+    document.getElementById('modeBanner');
 
   if(mode === 'random'){
 
     hideWeightedUI();
 
-    banner.className = 'mode-banner random-banner';
+    banner.className =
+      'mode-banner random-banner';
 
     banner.innerHTML = `
       <strong>Pure Random Mode</strong><br>
-      Every item has equal probability for every position.
+      Every permutation is equally likely.
     `;
 
-    const ordering = pureRandomShuffle(items);
+    const ordering =
+      pureRandomShuffle(items);
 
     renderOrdering(ordering);
-
-    renderRandomModeInfo(items);
 
   } else {
 
     showWeightedUI();
 
-    banner.className = 'mode-banner weighted-banner';
+    banner.className =
+      'mode-banner weighted-banner';
 
     banner.innerHTML = `
       <strong>Weighted Sampling Mode</strong><br>
-      Higher weights create larger sampling ranges and increase positional probability.
+      Position 1 uses weighted probability.
+      Remaining positions follow original
+      weight ranking.
     `;
 
     renderProbabilityTable(weights);
 
-    const result = weightedOrdering(items, weights);
+    const result =
+      weightedOrdering(items, weights);
 
     renderOrdering(result.ordering);
 
@@ -761,7 +727,8 @@ function runSimulation(){
 
 function runManySimulations(){
 
-  const mode = document.getElementById('mode').value;
+  const mode =
+    document.getElementById('mode').value;
 
   if(mode !== 'weighted'){
     return;
@@ -782,7 +749,8 @@ function runManySimulations(){
     const result =
       weightedOrdering(items, weights);
 
-    const pos1 = result.ordering[0];
+    const pos1 =
+      result.ordering[0];
 
     convergenceStats[pos1]++;
   }
@@ -792,7 +760,8 @@ function runManySimulations(){
 
 function resetWeights(){
 
-  document.querySelectorAll('.weight-input')
+  document
+    .querySelectorAll('.weight-input')
     .forEach(inp=>inp.value = 1);
 
   convergenceStats = {};
@@ -800,14 +769,19 @@ function resetWeights(){
   runSimulation();
 }
 
-document.getElementById('items')
+document
+  .getElementById('items')
   .addEventListener('change', ()=>{
+
     renderWeightInputs();
+
     runSimulation();
   });
 
-document.getElementById('mode')
+document
+  .getElementById('mode')
   .addEventListener('change', ()=>{
+
     runSimulation();
   });
 
