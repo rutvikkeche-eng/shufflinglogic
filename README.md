@@ -6,3 +6,5 @@ The core idea behind the weighted model is that not every item needs to have the
 The visualizer exposes the complete sampling process, including configured probabilities, generated random numbers, active sampling ranges, and long-run convergence against expected probabilities through repeated simulations.
 
 The project also includes a toggle for a pure random shuffle mode, where every item has equal probability for every position and every permutation is equally likely.
+
+Demo - https://rutvikkeche-eng.github.io/shufflinglogic/
