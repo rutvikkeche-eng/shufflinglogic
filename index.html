@@ -1,0 +1,683 @@
+# Weighted vs Random Ordering Visualizer
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Weighted vs Random Ordering Visualizer</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;800&display=swap');
+
+:root{
+  --bg:#f5f5f3;
+  --surface:#ffffff;
+  --surface2:#f0f0ee;
+  --border:#d9d9d4;
+  --text:#111110;
+  --muted:#777;
+  --green:#00a86b;
+  --blue:#1f6fff;
+  --orange:#ea7a00;
+}
+
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'JetBrains Mono', monospace;
+  padding:24px;
+}
+
+header{
+  margin-bottom:22px;
+  border-bottom:2px solid var(--text);
+  padding-bottom:12px;
+}
+
+header h1{
+  font-family:'Syne', sans-serif;
+  font-size:1.5rem;
+  font-weight:800;
+}
+
+header p{
+  margin-top:4px;
+  color:var(--muted);
+  font-size:0.75rem;
+}
+
+.layout{
+  display:grid;
+  grid-template-columns:340px 1fr;
+  gap:18px;
+}
+
+@media(max-width:1000px){
+  .layout{
+    grid-template-columns:1fr;
+  }
+}
+
+.panel{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:18px;
+}
+
+.sec-title{
+  font-family:'Syne', sans-serif;
+  text-transform:uppercase;
+  letter-spacing:2px;
+  font-size:0.68rem;
+  margin-bottom:14px;
+  color:var(--muted);
+}
+
+label{
+  display:block;
+  margin-top:12px;
+  margin-bottom:5px;
+  font-size:0.68rem;
+  color:var(--muted);
+}
+
+input[type=text],
+input[type=number],
+select{
+  width:100%;
+  padding:9px;
+  border:1px solid var(--border);
+  border-radius:6px;
+  background:var(--bg);
+  font-family:'JetBrains Mono', monospace;
+}
+
+.weight-row{
+  display:grid;
+  grid-template-columns:1fr 80px;
+  gap:8px;
+  margin-bottom:8px;
+}
+
+button{
+  width:100%;
+  border:none;
+  border-radius:6px;
+  padding:10px;
+  cursor:pointer;
+  font-family:'Syne', sans-serif;
+  font-weight:700;
+  margin-top:12px;
+}
+
+.primary{
+  background:var(--text);
+  color:#fff;
+}
+
+.secondary{
+  background:var(--surface2);
+}
+
+.right-col{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:8px;
+  overflow:hidden;
+}
+
+.card-head{
+  padding:12px 16px;
+  border-bottom:1px solid var(--border);
+  background:var(--surface2);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.card-title{
+  font-family:'Syne', sans-serif;
+  font-weight:700;
+}
+
+.card-body{
+  padding:16px;
+}
+
+.chip-row{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.chip{
+  min-width:64px;
+  height:48px;
+  border-radius:6px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  border:1px solid var(--border);
+  background:var(--surface2);
+}
+
+.chip strong{
+  font-size:0.85rem;
+}
+
+.chip span{
+  font-size:0.55rem;
+  color:var(--muted);
+}
+
+.table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+.table th,
+.table td{
+  border-bottom:1px solid var(--border);
+  padding:8px;
+  text-align:left;
+  font-size:0.72rem;
+}
+
+.table th{
+  background:var(--surface2);
+}
+
+.log{
+  max-height:260px;
+  overflow:auto;
+  border:1px solid var(--border);
+  border-radius:6px;
+}
+
+.log-entry{
+  padding:8px 10px;
+  border-bottom:1px solid var(--border);
+  font-size:0.68rem;
+}
+
+.badge{
+  display:inline-block;
+  padding:2px 6px;
+  border-radius:4px;
+  font-size:0.55rem;
+  font-weight:700;
+  margin-right:6px;
+}
+
+.badge-green{
+  background:#e7f8f0;
+  color:var(--green);
+}
+
+.badge-blue{
+  background:#ebf2ff;
+  color:var(--blue);
+}
+
+.range-box{
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:12px;
+  margin-bottom:12px;
+  background:#fafaf8;
+}
+
+.range-title{
+  font-weight:700;
+  margin-bottom:8px;
+}
+
+.highlight{
+  background:#fff7df;
+  border-color:#f0c24b;
+}
+
+.mode-banner{
+  padding:10px 12px;
+  border-radius:6px;
+  margin-bottom:16px;
+  font-size:0.72rem;
+}
+
+.weighted-banner{
+  background:#edf7ff;
+  border:1px solid #cfe4ff;
+}
+
+.random-banner{
+  background:#f5f5f0;
+  border:1px solid #d7d7cf;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Weighted vs Random Ordering</h1>
+  <p>Pure ordering simulation with visibility into probability distribution and sampling.</p>
+</header>
+
+<div class="layout">
+
+  <div class="panel">
+
+    <div class="sec-title">Configuration</div>
+
+    <label>Mode</label>
+    <select id="mode">
+      <option value="weighted">Weighted Sampling</option>
+      <option value="random">Pure Random Shuffle</option>
+    </select>
+
+    <label>Brands / Items</label>
+    <input type="text" id="items" value="Nike, Adidas, Puma, Reebok, Asics">
+
+    <div id="weightsContainer"></div>
+
+    <button class="primary" onclick="runSimulation()">
+      Generate Ordering
+    </button>
+
+    <button class="secondary" onclick="resetWeights()">
+      Reset Equal Weights
+    </button>
+
+  </div>
+
+  <div class="right-col">
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Generated Ordering</div>
+      </div>
+
+      <div class="card-body">
+
+        <div id="modeBanner"></div>
+
+        <div class="chip-row" id="orderingRow"></div>
+
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Probability Visibility</div>
+      </div>
+
+      <div class="card-body">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Configured Weight</th>
+              <th>Relative Probability</th>
+            </tr>
+          </thead>
+          <tbody id="probabilityTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Range Based Sampling</div>
+      </div>
+
+      <div class="card-body" id="rangeBody"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Sampling Log</div>
+      </div>
+
+      <div class="card-body">
+        <div class="log" id="logBody"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+
+function parseItems(){
+  return document
+    .getElementById('items')
+    .value
+    .split(',')
+    .map(x=>x.trim())
+    .filter(Boolean);
+}
+
+function renderWeightInputs(){
+
+  const items = parseItems();
+
+  const wrap = document.getElementById('weightsContainer');
+
+  wrap.innerHTML = '';
+
+  items.forEach(item=>{
+
+    const row = document.createElement('div');
+
+    row.className = 'weight-row';
+
+    row.innerHTML = `
+      <input type="text" value="${item}" disabled>
+      <input type="number" min="1" value="1" class="weight-input" data-item="${item}">
+    `;
+
+    wrap.appendChild(row);
+  });
+}
+
+function getWeights(){
+
+  const map = {};
+
+  document.querySelectorAll('.weight-input')
+    .forEach(inp=>{
+      map[inp.dataset.item] = Number(inp.value) || 1;
+    });
+
+  return map;
+}
+
+function renderProbabilityTable(weights){
+
+  const body = document.getElementById('probabilityTable');
+
+  body.innerHTML = '';
+
+  const total = Object.values(weights)
+    .reduce((a,b)=>a+b,0);
+
+  Object.entries(weights)
+    .forEach(([item,weight])=>{
+
+      const prob = ((weight/total)*100).toFixed(2);
+
+      const tr = document.createElement('tr');
+
+      tr.innerHTML = `
+        <td>${item}</td>
+        <td>${weight}</td>
+        <td>${prob}%</td>
+      `;
+
+      body.appendChild(tr);
+    });
+}
+
+function pureRandomShuffle(items){
+
+  const arr = [...items];
+
+  for(let i=arr.length-1;i>0;i--){
+
+    const j = Math.floor(Math.random()*(i+1));
+
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+
+  return arr;
+}
+
+function weightedOrdering(items, weights){
+
+  const working = items.map(item=>({
+    item,
+    weight:weights[item]
+  }));
+
+  const ordering = [];
+
+  const logs = [];
+
+  while(working.length){
+
+    const total = working
+      .reduce((a,b)=>a+b.weight,0);
+
+    const randomNumber = Math.random() * total;
+
+    let cumulative = 0;
+
+    let pickedIndex = -1;
+
+    const ranges = [];
+
+    for(let i=0;i<working.length;i++){
+
+      const start = cumulative;
+
+      cumulative += working[i].weight;
+
+      const end = cumulative;
+
+      ranges.push({
+        item:working[i].item,
+        start,
+        end
+      });
+
+      if(randomNumber >= start && randomNumber < end){
+        pickedIndex = i;
+      }
+    }
+
+    const chosen = working[pickedIndex];
+
+    ordering.push(chosen.item);
+
+    logs.push({
+      randomNumber:randomNumber.toFixed(2),
+      total:total.toFixed(2),
+      picked:chosen.item,
+      ranges
+    });
+
+    working.splice(pickedIndex,1);
+  }
+
+  return {
+    ordering,
+    logs
+  };
+}
+
+function renderOrdering(ordering){
+
+  const row = document.getElementById('orderingRow');
+
+  row.innerHTML = '';
+
+  ordering.forEach((item,idx)=>{
+
+    const chip = document.createElement('div');
+
+    chip.className = 'chip';
+
+    chip.innerHTML = `
+      <strong>${item}</strong>
+      <span>POSITION ${idx+1}</span>
+    `;
+
+    row.appendChild(chip);
+  });
+}
+
+function renderSampling(logs){
+
+  const body = document.getElementById('rangeBody');
+  const logBody = document.getElementById('logBody');
+
+  body.innerHTML = '';
+  logBody.innerHTML = '';
+
+  logs.forEach((step,idx)=>{
+
+    const box = document.createElement('div');
+
+    box.className = 'range-box';
+
+    let html = `
+      <div class="range-title">
+        Position ${idx+1} Selection
+      </div>
+
+      <div style="margin-bottom:8px;font-size:0.72rem;">
+        Random Number Generated:
+        <strong>${step.randomNumber}</strong>
+        / ${step.total}
+      </div>
+    `;
+
+    step.ranges.forEach(r=>{
+
+      const active = (
+        Number(step.randomNumber) >= r.start &&
+        Number(step.randomNumber) < r.end
+      );
+
+      html += `
+        <div class="range-box ${active ? 'highlight' : ''}">
+          <strong>${r.item}</strong><br>
+          Range: ${r.start.toFixed(2)} → ${r.end.toFixed(2)}
+        </div>
+      `;
+    });
+
+    box.innerHTML = html;
+
+    body.appendChild(box);
+
+    const log = document.createElement('div');
+
+    log.className = 'log-entry';
+
+    log.innerHTML = `
+      <span class="badge badge-green">STEP ${idx+1}</span>
+      Random ${step.randomNumber} selected
+      <strong>${step.picked}</strong>
+    `;
+
+    logBody.appendChild(log);
+  });
+}
+
+function renderRandomModeInfo(items){
+
+  const body = document.getElementById('rangeBody');
+  const logBody = document.getElementById('logBody');
+
+  body.innerHTML = `
+    <div class="range-box">
+      In pure random mode every item has equal probability for every available position.
+      <br><br>
+      No weighted range sampling occurs.
+      <br><br>
+      Probability per item per draw:
+      <strong>${(100/items.length).toFixed(2)}%</strong>
+    </div>
+  `;
+
+  logBody.innerHTML = `
+    <div class="log-entry">
+      <span class="badge badge-blue">RANDOM</span>
+      Uniform shuffle applied. Every permutation equally likely.
+    </div>
+  `;
+}
+
+function runSimulation(){
+
+  const mode = document.getElementById('mode').value;
+
+  const items = parseItems();
+
+  const weights = getWeights();
+
+  renderProbabilityTable(weights);
+
+  const banner = document.getElementById('modeBanner');
+
+  if(mode === 'random'){
+
+    banner.className = 'mode-banner random-banner';
+
+    banner.innerHTML = `
+      <strong>Pure Random Mode</strong><br>
+      Every item has equal probability for every position.
+    `;
+
+    const ordering = pureRandomShuffle(items);
+
+    renderOrdering(ordering);
+
+    renderRandomModeInfo(items);
+
+  } else {
+
+    banner.className = 'mode-banner weighted-banner';
+
+    banner.innerHTML = `
+      <strong>Weighted Sampling Mode</strong><br>
+      Higher weights create larger sampling ranges and increase positional probability.
+    `;
+
+    const result = weightedOrdering(items, weights);
+
+    renderOrdering(result.ordering);
+
+    renderSampling(result.logs);
+  }
+}
+
+function resetWeights(){
+
+  document.querySelectorAll('.weight-input')
+    .forEach(inp=>inp.value = 1);
+
+  runSimulation();
+}
+
+
+document.getElementById('items')
+  .addEventListener('change', ()=>{
+    renderWeightInputs();
+    runSimulation();
+  });
+
+renderWeightInputs();
+runSimulation();
+
+</script>
+
+</body>
+</html>
+```
